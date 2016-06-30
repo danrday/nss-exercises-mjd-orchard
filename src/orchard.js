@@ -1,19 +1,17 @@
+var $mainOutput = $(mainOutput);
+
+$mainOutput.html("ORCHARD");
 
 function Plant() {
 
-  this.height = 5;
+  this.height = 0;
+
+  //var to hold all new growth units, so that we can add a branch for every 10 growth units
+  this.addBranches = null;
 
   this.increaseHeight = function (growth) {
-    let beforeHeight = this.height;
 
     this.height += growth;
-
-    var amountGrown = this.height - beforeHeight;
-
-    var everyTenth = Math.floor(amountGrown / 10);
-
-    this.branches += everyTenth;
-
   };
    
     this.decreaseHeight = function(decrease) {
@@ -26,9 +24,11 @@ function Plant() {
 };
 
 
-function Tree() {
+function Tree(name) {
 
-  this.branches = 5;
+  this.name = name;
+
+  this.branches = 0;
 
   this.grow = function(amount) {
     this.height += amount;
@@ -37,8 +37,19 @@ function Tree() {
 
   this.trim = function(amount) {
     this.branches -= 1;
+    this.height -= amount;
     return this.branches;
   };
+
+  this.keepGrowing = function (amountPerSec) {
+  var instance = this;
+  this.keepGrowing.growInterval = setInterval(growSpecs, 1000, [amountPerSec, instance]);
+  var counterSeconds = 0;
+  this.keepGrowing.getCounterSeconds = function() {return counterSeconds};
+  this.keepGrowing.setCounterSeconds = function(x) {
+    counterSeconds += x;
+  }
+};
 
 };
 
@@ -47,47 +58,61 @@ function Tree() {
 
 Tree.prototype = new Plant();
 
-var oakTree = new Tree();
+var oakTree = new Tree("Oak Tree");
 
-oakTree.increaseHeight(20);
+// oakTree.increaseHeight(20);
 
 console.log(oakTree);
 
-
-var pearTree = new Tree();
-
-
-//set interval function below
+var pearTree = new Tree("Pear Tree");
 
 
 
 
+//var 'x' is [amountPerSec, .this] passed by setInterval in Tree.keepGrowing
+function growSpecs(x) {
 
-var counterSeconds = 0;
+    x[1].keepGrowing.setCounterSeconds(1);
 
-function growFunction (instance, amountPerSec) {
-  growFunction.growInterval = setInterval(growSpecs, 1000, [instance, amountPerSec]);
+    console.log("counterSeconds", x[1].keepGrowing.getCounterSeconds());
+
+    console.log("x[0] = amt per sec", x[0]);
+
+    console.log("x[1] = this", x[1]);
+
+    x[1].increaseHeight(x[0]);
+
+    //adds a branch for every 10 units of height added
+    x[1].addBranches += x[0];
+
+    if (x[1].addBranches >= 10) {
+      var divByTen = (x[1].addBranches / 10)
+      divByTen = Math.floor(divByTen);
+      x[1].branches += divByTen;
+      x[1].addBranches -= (divByTen*10);
+    }
+
+    console.log("x[1].addBranches", x[1].addBranches);
+    console.log("height", x[1].height);
+    console.log("branches", x[1].branches);
+    console.log("name", x[1].name)
+
+
+    $mainOutput.append(`<div>
+    Your ${x[1].name} is ${x[1].height} cm tall, and has ${x[1].branches} branches!</div>`)
+
+
+    if(x[1].keepGrowing.getCounterSeconds() > 30) {
+    // console.log("GREATER THAN 5")
+    clearInterval(x[1].keepGrowing.growInterval);
+    // };
+  }
 };
 
-//var Array is [instance, amountPerSec]
-function growSpecs(varArray) {
-    counterSeconds ++;
+  oakTree.keepGrowing(6);
+  pearTree.keepGrowing(9);
 
-    console.log("counterSeconds", counterSeconds);
 
-    console.log("instance[0]", varArray[0]);
-
-    console.log("instance[1]", varArray[1]);
-
-    varArray[0].increaseHeight(varArray[1]);
-
-    console.log("height", varArray[0].height);
-    console.log("branches", varArray[0].branches);
-
-    if(counterSeconds > 10) {
-    clearInterval(growFunction.growInterval);
-    }
-  }
 
 
 
