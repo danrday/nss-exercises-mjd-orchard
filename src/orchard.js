@@ -1,5 +1,4 @@
 var $mainOutput = $(mainOutput);
-
 $mainOutput.html("ORCHARD");
 
 function Plant() {
